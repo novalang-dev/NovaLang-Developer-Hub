@@ -151,14 +151,16 @@
         .author { font-size: 0.8rem; color: var(--text-secondary); font-weight: 600; display: flex; align-items: center; gap: 6px; }
     </style>
 
+    <!-- Supabase Entegrasyonu -->
     <script>
-        const SUPABASE_URL = 'https://kgzdnvfcxgtuuulzekxh.supabase.co'; // Sadece ana domain
-const SUPABASE_ANON_KEY = 'eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6ImtnemRudmZjeGd0dXV1bHpla3hoIiwicm9sZSI6ImFub24iLCJpYXQiOjE3OTAzMTcyMjksImV4cCI6MjEwNTg5MzIyOX0.9KsAnorvJ5glpxPo8vr4foCIPykjCQftZb7fxfA0kww';
+        const SUPABASE_URL = 'https://kgzdnvfcxgtuuulzekxh.supabase.co'; 
+        const SUPABASE_ANON_KEY = 'eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6ImtnemRudmZjeGd0dXV1bHpla3hoIiwicm9sZSI6ImFub24iLCJpYXQiOjE3OTAzMTcyMjksImV4cCI6MjEwNTg5MzIyOX0.9KsAnorvJ5glpxPo8vr4foCIPykjCQftZb7fxfA0kww';
         
-        // SENIN GITHUB KULLANICI ADIN (Rozet ve Admin Yetkisi İçin)
+        // SENIN GITHUB KULLANICI ADIN
         const ADMIN_GITHUB_USERNAME = 'novalang-dev'; 
 
-        const supabase = window.supabase.createClient(SUPABASE_URL, SUPABASE_ANON_KEY);
+        // İsim çakışmasını önlemek için 'window.supabaseClient' kullanıyoruz
+        window.supabaseClient = window.supabase.createClient(SUPABASE_URL, SUPABASE_ANON_KEY);
 
         const btnLogin = document.getElementById('btn-login');
         const btnLogout = document.getElementById('btn-logout');
@@ -167,14 +169,14 @@ const SUPABASE_ANON_KEY = 'eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBh
         const adminPanel = document.getElementById('admin-panel');
 
         async function loginWithGitHub() {
-            await supabase.auth.signInWithOAuth({
+            await window.supabaseClient.auth.signInWithOAuth({
                 provider: 'github',
                 options: { redirectTo: 'https://novalang-dev.github.io/duyurular.html' }
             });
         }
 
         async function logout() {
-            await supabase.auth.signOut();
+            await window.supabaseClient.auth.signOut();
             updateUI(null);
         }
 
@@ -199,10 +201,10 @@ const SUPABASE_ANON_KEY = 'eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBh
         }
 
         async function checkUserSession() {
-            const { data: { session } } = await supabase.auth.getSession();
+            const { data: { session } } = await window.supabaseClient.auth.getSession();
             updateUI(session?.user || null);
 
-            supabase.auth.onAuthStateChange((_event, session) => {
+            window.supabaseClient.auth.onAuthStateChange((_event, session) => {
                 updateUI(session?.user || null);
             });
         }
@@ -216,7 +218,7 @@ const SUPABASE_ANON_KEY = 'eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBh
             const tag = document.getElementById('ann-tag').value;
             const tag_type = document.getElementById('ann-tag-type').value;
 
-            const { error } = await supabase
+            const { error } = await window.supabaseClient
                 .from('duyurular')
                 .insert([{
                     baslik: title,
@@ -240,7 +242,7 @@ const SUPABASE_ANON_KEY = 'eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBh
             const grid = document.getElementById('announcements-grid');
             grid.innerHTML = '<p style="text-align:center; color:var(--text-secondary);">Duyurular yükleniyor...</p>';
 
-            const { data: duyurular, error } = await supabase
+            const { data: duyurular, error } = await window.supabaseClient
                 .from('duyurular')
                 .select('*')
                 .order('created_at', { ascending: false });

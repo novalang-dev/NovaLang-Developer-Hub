@@ -643,12 +643,14 @@
     </style>
 
     <!-- Supabase Entegrasyon Mantığı -->
+    <!-- Supabase Entegrasyon Mantığı -->
     <script>
-        const SUPABASE_URL = 'https://kgzdnvfcxgtuuulzekxh.supabase.co'; // Kendi Supabase URL değerini yapıştır
-        const SUPABASE_ANON_KEY = 'eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6ImtnemRudmZjeGd0dXV1bHpla3hoIiwicm9sZSI6ImFub24iLCJpYXQiOjE3OTAzMTcyMjksImV4cCI6MjEwNTg5MzIyOX0.9KsAnorvJ5glpxPo8vr4foCIPykjCQftZb7fxfA0kww'; // Kendi anon key değerini yapıştır
+        // Supabase Bağlantı Bilgilerin
+        const SUPABASE_URL = 'https://kgzdnvfcxgtuuulzekxh.supabase.co'; 
+        const SUPABASE_ANON_KEY = 'eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6ImtnemRudmZjeGd0dXV1bHpla3hoIiwicm9sZSI6ImFub24iLCJpYXQiOjE3OTAzMTcyMjksImV4cCI6MjEwNTg5MzIyOX0.9KsAnorvJ5glpxPo8vr4foCIPykjCQftZb7fxfA0kww';
 
-        // Supabase istemcisini başlat
-        const supabase = window.supabase.createClient(SUPABASE_URL, SUPABASE_ANON_KEY);
+        // İsim çakışmasını önlemek için 'window.supabaseClient' kullanıyoruz
+        window.supabaseClient = window.supabase.createClient(SUPABASE_URL, SUPABASE_ANON_KEY);
 
         // DOM Elemanları
         const btnLogin = document.getElementById('btn-login');
@@ -656,9 +658,9 @@
         const userProfile = document.getElementById('user-profile');
         const userAvatar = document.getElementById('user-avatar');
 
-        // GitHub ile Giriş Yapme Fonksiyonu
+        // GitHub ile Giriş Yapma Fonksiyonu
         async function loginWithGitHub() {
-            const { data, error } = await supabase.auth.signInWithOAuth({
+            const { data, error } = await window.supabaseClient.auth.signInWithOAuth({
                 provider: 'github',
                 options: {
                     redirectTo: 'https://novalang-dev.github.io/'
@@ -669,7 +671,7 @@
 
         // Çıkış Yapma Fonksiyonu
         async function logout() {
-            const { error } = await supabase.auth.signOut();
+            const { error } = await window.supabaseClient.auth.signOut();
             if (error) console.error('Çıkış hatası:', error.message);
             else updateUI(null);
         }
@@ -689,11 +691,11 @@
 
         // Sayfa Yüklendiğinde Oturumu Kontrol Et
         async function checkUserSession() {
-            const { data: { session } } = await supabase.auth.getSession();
+            const { data: { session } } = await window.supabaseClient.auth.getSession();
             updateUI(session?.user || null);
 
             // Dinamik Oturum Değişimlerini Dinle
-            supabase.auth.onAuthStateChange((_event, session) => {
+            window.supabaseClient.auth.onAuthStateChange((_event, session) => {
                 updateUI(session?.user || null);
             });
         }
