@@ -1,0 +1,913 @@
+<!DOCTYPE html>
+<html lang="tr">
+
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Forum | NovaLang Developer Hub</title>
+    <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
+    <style>
+        @import url('https://fonts.googleapis.com/css2?family=Plus+Jakarta+Sans:wght@500;600;700;800&display=swap');
+
+        :root {
+            --bg-dark: #030712;
+            --panel: rgba(17, 24, 39, 0.68);
+            --panel-solid: #0b1220;
+            --accent-cyan: #06b6d4;
+            --accent-purple: #8b5cf6;
+            --text-primary: #f9fafb;
+            --text-secondary: #9ca3af;
+            --border: rgba(255, 255, 255, 0.09);
+            --success: #10b981;
+        }
+
+        * {
+            box-sizing: border-box;
+        }
+
+        body {
+            margin: 0;
+            min-height: 100vh;
+            color: var(--text-primary);
+            background: var(--bg-dark);
+            font-family: 'Plus Jakarta Sans', sans-serif;
+        }
+
+        body::before {
+            content: '';
+            position: fixed;
+            inset: 0;
+            z-index: -1;
+            background: 
+                radial-gradient(circle at 12% 8%, rgba(6, 182, 212, 0.13), transparent 30%),
+                radial-gradient(circle at 88% 24%, rgba(139, 92, 246, 0.14), transparent 30%);
+        }
+
+        .navbar {
+            position: sticky;
+            top: 16px;
+            z-index: 1000;
+            max-width: 1100px;
+            margin: 0 auto;
+            padding: 0 16px;
+        }
+
+        .nav-container {
+            display: flex;
+            align-items: center;
+            justify-content: space-between;
+            padding: 8px 24px;
+            background: rgba(17, 24, 39, 0.76);
+            border: 1px solid var(--border);
+            border-radius: 99px;
+            backdrop-filter: blur(16px) saturate(180%);
+            box-shadow: 0 20px 40px -15px rgba(0, 0, 0, 0.5);
+        }
+
+        .logo {
+            display: flex;
+            align-items: center;
+            gap: 10px;
+            color: var(--text-primary);
+            text-decoration: none;
+            font-size: 1.15rem;
+            font-weight: 800;
+        }
+
+        .logo-icon {
+            display: grid;
+            place-items: center;
+            width: 36px;
+            height: 36px;
+            border-radius: 50%;
+            color: white;
+            background: linear-gradient(135deg, var(--accent-cyan), var(--accent-purple));
+            box-shadow: 0 0 15px rgba(6, 182, 212, 0.4);
+        }
+
+        .logo-badge {
+            margin-left: 6px;
+            padding: 2px 6px;
+            color: var(--accent-cyan);
+            background: rgba(6, 182, 212, 0.15);
+            border: 1px solid rgba(6, 182, 212, 0.3);
+            border-radius: 6px;
+            font-size: 0.65rem;
+        }
+
+        .nav-menu {
+            display: flex;
+            align-items: center;
+            gap: 6px;
+        }
+
+        .nav-link {
+            padding: 8px 13px;
+            border: 0;
+            border-radius: 99px;
+            color: var(--text-secondary);
+            background: transparent;
+            font: 600 0.85rem 'Plus Jakarta Sans', sans-serif;
+            text-decoration: none;
+            cursor: pointer;
+            transition: 0.25s ease;
+        }
+
+        .nav-link:hover,
+        .nav-link.active {
+            color: white;
+            background: rgba(255, 255, 255, 0.08);
+        }
+
+        .nav-link.forum {
+            background: linear-gradient(135deg, var(--accent-cyan), var(--accent-purple));
+            color: white;
+        }
+
+        .nav-announcement {
+            position: relative;
+        }
+
+        .nav-ping {
+            position: absolute;
+            top: 6px;
+            right: 9px;
+            width: 6px;
+            height: 6px;
+            border-radius: 50%;
+            background: var(--accent-cyan);
+            box-shadow: 0 0 7px var(--accent-cyan);
+        }
+
+        .nav-link.login {
+            display: inline-flex;
+            align-items: center;
+            gap: 6px;
+            color: var(--text-primary);
+            background: rgba(255, 255, 255, 0.08);
+            border: 1px solid rgba(255, 255, 255, 0.15);
+        }
+
+        .forum-shell {
+            max-width: 1100px;
+            margin: 0 auto;
+            padding: 90px 20px 60px;
+        }
+
+        .hero {
+            text-align: center;
+            margin-bottom: 48px;
+        }
+
+        .eyebrow {
+            display: inline-flex;
+            align-items: center;
+            gap: 8px;
+            padding: 7px 14px;
+            border: 1px solid var(--border);
+            border-radius: 99px;
+            color: var(--text-secondary);
+            background: rgba(255, 255, 255, 0.03);
+            font-size: 0.85rem;
+        }
+
+        .eyebrow::before {
+            content: '';
+            width: 8px;
+            height: 8px;
+            border-radius: 50%;
+            background: var(--success);
+            box-shadow: 0 0 10px var(--success);
+        }
+
+        h1 {
+            margin: 22px 0 12px;
+            font-size: clamp(2.4rem, 6vw, 4rem);
+            letter-spacing: -2px;
+        }
+
+        .gradient-text {
+            background: linear-gradient(135deg, var(--accent-cyan), var(--accent-purple));
+            background-clip: text;
+            -webkit-background-clip: text;
+            color: transparent;
+        }
+
+        .hero p {
+            max-width: 650px;
+            margin: 0 auto;
+            color: var(--text-secondary);
+            line-height: 1.7;
+        }
+
+        .forum-toolbar {
+            display: flex;
+            gap: 12px;
+            margin-bottom: 24px;
+        }
+
+        .search {
+            flex: 1;
+            min-width: 0;
+            padding: 13px 18px;
+            border: 1px solid var(--border);
+            border-radius: 14px;
+            outline: none;
+            color: var(--text-primary);
+            background: var(--panel);
+            font: 500 0.9rem 'Plus Jakarta Sans', sans-serif;
+        }
+
+        .search:focus,
+        .category-select:focus {
+            border-color: rgba(6, 182, 212, 0.55);
+            box-shadow: 0 0 0 3px rgba(6, 182, 212, 0.08);
+        }
+
+        .category-select {
+            padding: 0 16px;
+            border: 1px solid var(--border);
+            border-radius: 14px;
+            color: var(--text-primary);
+            background: var(--panel-solid);
+            font: 600 0.85rem 'Plus Jakarta Sans', sans-serif;
+        }
+
+        .new-topic {
+            padding: 0 20px;
+            border: 0;
+            border-radius: 14px;
+            color: white;
+            background: linear-gradient(135deg, var(--accent-cyan), var(--accent-purple));
+            font: 700 0.88rem 'Plus Jakarta Sans', sans-serif;
+            cursor: pointer;
+        }
+
+        .forum-layout {
+            display: grid;
+            grid-template-columns: 1fr 290px;
+            gap: 22px;
+        }
+
+        .card {
+            background: var(--panel);
+            border: 1px solid var(--border);
+            border-radius: 20px;
+            backdrop-filter: blur(14px);
+        }
+
+        .topics {
+            overflow: hidden;
+        }
+
+        .section-title {
+            display: flex;
+            align-items: center;
+            justify-content: space-between;
+            padding: 20px 22px;
+            border-bottom: 1px solid var(--border);
+        }
+
+        .section-title h2 {
+            margin: 0;
+            font-size: 1rem;
+        }
+
+        .section-title span {
+            color: var(--text-secondary);
+            font-size: 0.8rem;
+        }
+
+        .topic {
+            display: grid;
+            grid-template-columns: 44px 1fr auto;
+            gap: 14px;
+            align-items: center;
+            padding: 20px 22px;
+            border-bottom: 1px solid var(--border);
+            transition: background 0.2s ease;
+        }
+
+        .topic:last-child {
+            border-bottom: 0;
+        }
+
+        .topic:hover {
+            background: rgba(255, 255, 255, 0.025);
+        }
+
+        .avatar {
+            display: grid;
+            place-items: center;
+            width: 44px;
+            height: 44px;
+            border-radius: 13px;
+            color: white;
+            font-weight: 800;
+            background: linear-gradient(135deg, rgba(6, 182, 212, .8), rgba(139, 92, 246, .8));
+            overflow: hidden;
+        }
+
+        .avatar img {
+            width: 100%;
+            height: 100%;
+            object-fit: cover;
+        }
+
+        .topic-title {
+            margin: 0 0 6px;
+            font-size: 0.96rem;
+        }
+
+        .topic-meta {
+            display: flex;
+            flex-wrap: wrap;
+            gap: 7px;
+            color: var(--text-secondary);
+            font-size: 0.76rem;
+        }
+
+        .tag {
+            padding: 3px 8px;
+            color: #67e8f9;
+            background: rgba(6, 182, 212, 0.1);
+            border: 1px solid rgba(6, 182, 212, 0.16);
+            border-radius: 99px;
+        }
+
+        .topic-stats {
+            display: flex;
+            gap: 18px;
+            text-align: right;
+        }
+
+        .topic-stats strong,
+        .topic-stats small {
+            display: block;
+        }
+
+        .topic-stats strong {
+            font-size: 0.9rem;
+        }
+
+        .topic-stats small {
+            color: var(--text-secondary);
+            font-size: 0.68rem;
+            margin-top: 3px;
+        }
+
+        .empty {
+            display: none;
+            padding: 45px 20px;
+            color: var(--text-secondary);
+            text-align: center;
+        }
+
+        .sidebar {
+            display: flex;
+            flex-direction: column;
+            gap: 18px;
+        }
+
+        .side-card {
+            padding: 20px;
+        }
+
+        .side-card h3 {
+            margin: 0 0 16px;
+            font-size: 0.95rem;
+        }
+
+        .category {
+            display: flex;
+            align-items: center;
+            gap: 11px;
+            padding: 10px 0;
+            color: var(--text-secondary);
+            font-size: 0.84rem;
+        }
+
+        .category-dot {
+            width: 9px;
+            height: 9px;
+            border-radius: 50%;
+        }
+
+        .category a {
+            margin-left: auto;
+            color: var(--text-secondary);
+            text-decoration: none;
+        }
+
+        .rule {
+            margin: 10px 0;
+            padding-bottom: 10px;
+            border-bottom: 1px solid var(--border);
+            color: var(--text-secondary);
+            font-size: 0.82rem;
+        }
+
+        .rule:last-child {
+            margin-bottom: 0;
+            padding-bottom: 0;
+            border: 0;
+        }
+
+        .modal {
+            position: fixed;
+            inset: 0;
+            z-index: 2000;
+            display: none;
+            place-items: center;
+            padding: 20px;
+            background: rgba(0, 0, 0, .72);
+            backdrop-filter: blur(8px);
+        }
+
+        .modal.open {
+            display: grid;
+        }
+
+        .modal-content {
+            width: min(520px, 100%);
+            padding: 24px;
+            border: 1px solid var(--border);
+            border-radius: 20px;
+            background: var(--panel-solid);
+            box-shadow: 0 25px 70px rgba(0, 0, 0, .45);
+        }
+
+        .modal-header {
+            display: flex;
+            align-items: center;
+            justify-content: space-between;
+            margin-bottom: 20px;
+        }
+
+        .modal-header h2 {
+            margin: 0;
+            font-size: 1.2rem;
+        }
+
+        .close {
+            border: 0;
+            color: var(--text-secondary);
+            background: transparent;
+            font-size: 1.5rem;
+            cursor: pointer;
+        }
+
+        label {
+            display: block;
+            margin: 14px 0 7px;
+            color: var(--text-secondary);
+            font-size: 0.82rem;
+        }
+
+        .modal input,
+        .modal select,
+        .modal textarea {
+            width: 100%;
+            padding: 12px 14px;
+            border: 1px solid var(--border);
+            border-radius: 10px;
+            outline: none;
+            color: var(--text-primary);
+            background: rgba(3, 7, 18, .8);
+            font: 500 0.9rem 'Plus Jakarta Sans', sans-serif;
+            resize: vertical;
+        }
+
+        .submit {
+            width: 100%;
+            margin-top: 18px;
+            padding: 12px;
+            border: 0;
+            border-radius: 10px;
+            color: white;
+            background: linear-gradient(135deg, var(--accent-cyan), var(--accent-purple));
+            font: 700 0.9rem 'Plus Jakarta Sans', sans-serif;
+            cursor: pointer;
+        }
+
+        .auth-note {
+            margin: 15px 0 0;
+            color: #fbbf24;
+            font-size: 0.78rem;
+            text-align: center;
+        }
+
+        .profile {
+            display: none;
+            align-items: center;
+            gap: 8px;
+        }
+
+        .profile img {
+            width: 30px;
+            height: 30px;
+            border-radius: 50%;
+            border: 1px solid var(--accent-cyan);
+        }
+
+        .logout {
+            padding: 7px 11px;
+            border: 1px solid rgba(239, 68, 68, .4);
+            border-radius: 99px;
+            color: #f87171;
+            background: rgba(239, 68, 68, .15);
+            font: 600 .78rem 'Plus Jakarta Sans';
+            cursor: pointer;
+        }
+
+        .site-footer {
+            position: relative;
+            margin-top: 40px;
+            padding: 55px 20px 25px;
+            overflow: hidden;
+            border-top: 1px solid var(--border);
+            background: rgba(3, 7, 18, .95);
+        }
+
+        .footer-glow {
+            position: absolute;
+            bottom: -100px;
+            left: 50%;
+            width: 600px;
+            height: 200px;
+            transform: translateX(-50%);
+            background: radial-gradient(circle, rgba(6, 182, 212, .15), rgba(139, 92, 246, .08) 50%, transparent 80%);
+            filter: blur(80px);
+            pointer-events: none;
+        }
+
+        .footer-container {
+            position: relative;
+            z-index: 1;
+            max-width: 1100px;
+            margin: 0 auto;
+        }
+
+        .footer-top {
+            display: flex;
+            justify-content: space-between;
+            gap: 40px;
+            margin-bottom: 40px;
+        }
+
+        .footer-brand { max-width: 360px; }
+        .footer-logo { display: flex; align-items: center; gap: 10px; margin-bottom: 14px; color: var(--text-primary); text-decoration: none; font-weight: 800; }
+        .brand-desc { margin: 0; color: var(--text-secondary); font-size: .88rem; line-height: 1.6; }
+        .footer-links { display: flex; gap: 60px; }
+        .link-group h3 { margin: 0 0 14px; font-size: .9rem; }
+        .link-group ul { display: flex; flex-direction: column; gap: 10px; margin: 0; padding: 0; list-style: none; }
+        .link-group a { color: var(--text-secondary); font-size: .84rem; text-decoration: none; transition: color .2s ease; }
+        .link-group a:hover { color: var(--accent-cyan); }
+        .footer-bottom { display: flex; align-items: center; justify-content: space-between; padding-top: 20px; border-top: 1px solid var(--border); }
+        .copyright { margin: 0; color: var(--text-secondary); font-size: .8rem; }
+        .social-btn { display: grid; place-items: center; width: 36px; height: 36px; border: 1px solid var(--border); border-radius: 50%; color: var(--text-secondary); background: rgba(255,255,255,.04); transition: .2s ease; }
+        .social-btn:hover { color: white; border-color: var(--accent-cyan); transform: translateY(-2px); }
+
+        @media (max-width: 850px) {
+            .navbar { top: 8px; }
+            .nav-container { padding: 10px 14px; border-radius: 18px; }
+            .nav-menu .nav-link:not(.forum):not(.login) { display: none; }
+            .forum-shell { padding-top: 60px; }
+            .forum-layout { grid-template-columns: 1fr; }
+            .sidebar { display: none; }
+            .forum-toolbar { flex-wrap: wrap; }
+            .search { flex-basis: 100%; }
+            .category-select, .new-topic { flex: 1; }
+            .footer-top { flex-direction: column; }
+            .footer-links { gap: 35px; }
+        }
+
+        @media (max-width: 560px) {
+            .logo-badge { display: none; }
+            .footer-links { flex-direction: column; gap: 25px; }
+            .footer-bottom { flex-direction: column; gap: 14px; text-align: center; }
+            .topic { grid-template-columns: 38px 1fr; padding: 17px; }
+            .topic-stats { grid-column: 2; text-align: left; }
+            .avatar { width: 38px; height: 38px; }
+        }
+    </style>
+</head>
+
+<body>
+    <header class="navbar">
+        <div class="nav-container">
+            <a href="index.html" class="logo">
+                <span class="logo-icon">
+                    <svg viewBox="0 0 24 24" width="20" height="20" stroke="currentColor" stroke-width="2.5" fill="none">
+                        <path d="M12 2L2 7l10 5 10-5-10-5zM2 17l10 5 10-5M2 12l10 5 10-5"></path>
+                    </svg>
+                </span>
+                <span>NovaLang<span class="logo-badge">DEV</span></span>
+            </a>
+            <nav class="nav-menu">
+                <a href="index.html" class="nav-link">Ana Sayfa</a>
+                <a href="duyurular.html" class="nav-link nav-announcement">
+                    Duyurular <span class="nav-ping"></span>
+                </a>
+                <a href="index.html#araclar" class="nav-link">Araçlar</a>
+                <a href="index.html#oyunlar" class="nav-link">Oyunlar</a>
+                <a href="index.html#hakkimizda" class="nav-link">Hakkımızda</a>
+                <a href="forum.html" class="nav-link forum active">Forum</a>
+                <button id="btn-login" class="nav-link login" aria-label="GitHub ile giriş yap">
+                    <svg width="16" height="16" viewBox="0 0 24 24" fill="currentColor" aria-hidden="true"><path d="M12 0C5.37 0 0 5.37 0 12c0 5.31 3.435 9.795 8.205 11.385.6.105.825-.255.825-.57 0-.285-.015-1.23-.015-2.235-3.015.555-3.795-.735-4.035-1.41-.135-.345-.72-1.41-1.23-1.695-.42-.225-1.02-.78-.015-.795.945-.015 1.62.87 1.845 1.23 1.08 1.815 2.805 1.305 3.495.99.105-.78.42-1.305.765-1.605-2.67-.3-5.46-1.335-5.46-5.925 0-1.305.465-2.385 1.23-3.225-.12-.3-.54-1.53.12-3.18 0 0 1.005-.315 3.3 1.23.96-.27 1.98-.405 3-.405s2.04.135 3 .405c2.295-1.56 3.3-1.23 3.3-1.23.66 1.65.24 2.88.12 3.18.765.84 1.23 1.905 1.23 3.225 0 4.605-2.805 5.625-5.475 5.925.435.375.81 1.095.81 2.22 0 1.605-.015 2.895-.015 3.3 0 .315.225.69.825.57A12.02 12.02 0 0024 12c0-6.63-5.37-12-12-12z"/></svg>
+                    Giriş Yap
+                </button>
+                <div id="profile" class="profile">
+                    <img id="avatar" alt="Kullanıcı avatarı">
+                    <button id="btn-logout" class="logout">Çıkış</button>
+                </div>
+            </nav>
+        </div>
+    </header>
+
+    <main class="forum-shell">
+        <section class="hero">
+            <span class="eyebrow">NovaLang Topluluğu</span>
+            <h1>Geliştiricilerin <span class="gradient-text">Tartışma Alanı</span></h1>
+            <p>Projelerin hakkında soru sor, deneyimlerini paylaş, çözüm arayın ve açık kaynak geliştiriciler topluluğuna katılın.</p>
+        </section>
+
+        <div class="forum-toolbar">
+            <input id="search" class="search" type="search" placeholder="Konu, kategori veya etiket ara...">
+            <select id="category-filter" class="category-select" aria-label="Kategori seç">
+                <option value="all">Tüm Kategoriler</option>
+                <option value="Projeler">Projeler</option>
+                <option value="Yardım">Yardım</option>
+                <option value="Öneriler">Öneriler</option>
+                <option value="Duyurular">Duyurular</option>
+            </select>
+            <button id="new-topic" class="new-topic">+ Yeni Konu</button>
+        </div>
+
+        <div class="forum-layout">
+            <section class="card topics">
+                <div class="section-title">
+                    <h2>Son Tartışmalar</h2><span id="result-count">0 konu</span>
+                </div>
+                <div id="topic-list"></div>
+                <div id="empty-state" class="empty">Henüz bir tartışma konusu açılmamış ya da aramanla eşleşen sonuç bulunamadı.</div>
+            </section>
+
+            <aside class="sidebar">
+                <section class="card side-card">
+                    <h3>Kategoriler</h3>
+                    <div class="category"><span class="category-dot" style="background:#06b6d4"></span>Projeler</div>
+                    <div class="category"><span class="category-dot" style="background:#8b5cf6"></span>Yardım</div>
+                    <div class="category"><span class="category-dot" style="background:#10b981"></span>Öneriler</div>
+                    <div class="category"><span class="category-dot" style="background:#f59e0b"></span>Duyurular</div>
+                </section>
+                <section class="card side-card">
+                    <h3>Forum Kuralları</h3>
+                    <p class="rule">• Yapıcı ve saygılı bir dil kullan.</p>
+                    <p class="rule">• Aynı soruyu tekrar paylaşma.</p>
+                    <p class="rule">• Güvenlik açıklarını herkese açık paylaşma.</p>
+                    <p class="rule">• İlgili hata mesajlarını ve kod parçalarını ekle.</p>
+                </section>
+            </aside>
+        </div>
+    </main>
+
+    <footer class="site-footer">
+        <div class="footer-glow"></div>
+        <div class="footer-container">
+            <div class="footer-top">
+                <div class="footer-brand">
+                    <a href="index.html" class="footer-logo">
+                        <span class="logo-icon">
+                            <svg viewBox="0 0 24 24" width="18" height="18" stroke="currentColor" stroke-width="2.5" fill="none"><path d="M12 2L2 7l10 5 10-5-10-5zM2 17l10 5 10-5M2 12l10 5 10-5"></path></svg>
+                        </span>
+                        <span>NovaLang<span class="logo-badge">DEV</span></span>
+                    </a>
+                    <p class="brand-desc">Açık kaynak yazılım araçları, bağımsız web oyunları ve deneysel projeler geliştiren bağımsız geliştirici hub'ı.</p>
+                </div>
+                <div class="footer-links">
+                    <div class="link-group">
+                        <h3>Proje & Araçlar</h3>
+                        <ul>
+                            <li><a href="index.html">Cyber Tycoon</a></li>
+                            <li><a href="index.html">NovaArt</a></li>
+                            <li><a href="index.html">ShieldX</a></li>
+                        </ul>
+                    </div>
+                    <div class="link-group">
+                        <h3>Topluluk & Linkler</h3>
+                        <ul>
+                            <li><a href="forum.html">Forum & Tartışma</a></li>
+                            <li><a href="https://github.com/novalang-dev" target="_blank" rel="noopener noreferrer">GitHub Deposu</a></li>
+                            <li><a href="index.html">Hakkımızda</a></li>
+                        </ul>
+                    </div>
+                </div>
+            </div>
+            <div class="footer-bottom">
+                <p class="copyright">© 2026 <strong>NovaLang Developer Hub</strong>. Tüm projeler açık kaynaklıdır.</p>
+                <a href="https://github.com/novalang-dev" target="_blank" rel="noopener noreferrer" aria-label="GitHub" class="social-btn">
+                    <svg width="18" height="18" viewBox="0 0 24 24" fill="currentColor"><path d="M12 0C5.37 0 0 5.37 0 12c0 5.31 3.435 9.795 8.205 11.385.6.105.825-.255.825-.57 0-.285-.015-1.23-.015-2.235-3.015.555-3.795-.735-4.035-1.41-.135-.345-.72-1.41-1.23-1.695-.42-.225-1.02-.78-.015-.795.945-.015 1.62.87 1.845 1.23 1.08 1.815 2.805 1.305 3.495.99.105-.78.42-1.305.765-1.605-2.67-.3-5.46-1.335-5.46-5.925 0-1.305.465-2.385 1.23-3.225-.12-.3-.54-1.53.12-3.18 0 0 1.005-.315 3.3 1.23.96-.27 1.98-.405 3-.405s2.04.135 3 .405c2.295-1.56 3.3-1.23 3.3-1.23.66 1.65.24 2.88.12 3.18.765.84 1.23 1.905 1.23 3.225 0 4.605-2.805 5.625-5.475 5.925.435.375.81 1.095.81 2.22 0 1.605-.015 2.895-.015 3.3 0 .315.225.69.825.57A12.02 12.02 0 0024 12c0-6.63-5.37-12-12-12z"/></svg>
+                </a>
+            </div>
+        </div>
+    </footer>
+
+    <div id="topic-modal" class="modal" role="dialog" aria-modal="true" aria-labelledby="modal-title">
+        <div class="modal-content">
+            <div class="modal-header">
+                <h2 id="modal-title">Yeni Konu Oluştur</h2>
+                <button id="close-modal" class="close" aria-label="Kapat">×</button>
+            </div>
+            <form id="topic-form">
+                <label for="topic-title-input">Konu Başlığı</label>
+                <input id="topic-title-input" required maxlength="100" placeholder="Örn. WebSocket bağlantısında hata alıyorum">
+                
+                <label for="topic-category-input">Kategori</label>
+                <select id="topic-category-input">
+                    <option value="Projeler">Projeler</option>
+                    <option value="Yardım">Yardım</option>
+                    <option value="Öneriler">Öneriler</option>
+                    <option value="Duyurular">Duyurular</option>
+                </select>
+                
+                <label for="topic-content-input">Mesajınız</label>
+                <textarea id="topic-content-input" required rows="6" placeholder="Konu hakkında ayrıntılı bilgi paylaşın..."></textarea>
+                
+                <p id="auth-note" class="auth-note" style="display:none;">Yeni konu oluşturmak için GitHub ile giriş yapmalısın.</p>
+                <button class="submit" type="submit">Konuyu Yayınla</button>
+            </form>
+        </div>
+    </div>
+
+    <script>
+        const SUPABASE_URL = 'https://kgzdnvfcxgtuuulzekxh.supabase.co';
+        const SUPABASE_ANON_KEY = 'eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6ImtnemRudmZjeGd0dXV1bHpla3hoIiwicm9sZSI6ImFub24iLCJpYXQiOjE3OTAzMTcyMjksImV4cCI6MjEwNTg5MzIyOX0.9KsAnorvJ5glpxPo8vr4foCIPykjCQftZb7fxfA0kww';
+        
+        window.supabaseClient = window.supabase.createClient(SUPABASE_URL, SUPABASE_ANON_KEY);
+        
+        let topics = [];
+        let currentUser = null;
+
+        const topicList = document.getElementById('topic-list');
+        const searchInput = document.getElementById('search');
+        const categoryFilter = document.getElementById('category-filter');
+        const topicModal = document.getElementById('topic-modal');
+        const topicForm = document.getElementById('topic-form');
+
+        function escapeHtml(value) {
+            return String(value || '').replace(/[&<>'"]/g, char => ({ '&': '&amp;', '<': '&lt;', '>': '&gt;', "'": '&#39;', '"': '&quot;' }[char]));
+        }
+
+        // Supabase'den Konuları Çekme
+        async function fetchTopics() {
+            topicList.innerHTML = '<p style="text-align:center; color:var(--text-secondary); padding: 20px;">Konular yükleniyor...</p>';
+
+            const { data, error } = await window.supabaseClient
+                .from('forum_topics')
+                .select('*')
+                .order('created_at', { ascending: false });
+
+            if (error) {
+                console.error('Konular çekilemedi:', error.message);
+                topicList.innerHTML = '<p style="text-align:center; color:#f87171; padding: 20px;">Konular yüklenirken bir hata oluştu.</p>';
+                return;
+            }
+
+            topics = data || [];
+            renderTopics();
+        }
+
+        function renderTopics() {
+            const query = searchInput.value.toLocaleLowerCase('tr');
+            const category = categoryFilter.value;
+            const filtered = topics.filter(topic => {
+                const matchesCategory = category === 'all' || topic.category === category;
+                const matchesQuery = `${topic.title} ${topic.author} ${topic.category}`.toLocaleLowerCase('tr').includes(query);
+                return matchesCategory && matchesQuery;
+            });
+
+            if (filtered.length === 0) {
+                topicList.innerHTML = '';
+                document.getElementById('empty-state').style.display = 'block';
+                document.getElementById('result-count').textContent = '0 konu';
+                return;
+            }
+
+            document.getElementById('empty-state').style.display = 'none';
+            topicList.innerHTML = filtered.map(topic => {
+                const avatarImg = topic.avatar_url 
+                    ? `<img src="${escapeHtml(topic.avatar_url)}" alt="">` 
+                    : escapeHtml(topic.author.charAt(0).toUpperCase());
+
+                const timeAgo = new Date(topic.created_at).toLocaleDateString('tr-TR', {
+                    day: 'numeric', month: 'short', hour: '2-digit', minute: '2-digit'
+                });
+
+                return `
+                    <article class="topic">
+                        <div class="avatar">${avatarImg}</div>
+                        <div>
+                            <h3 class="topic-title">${escapeHtml(topic.title)}</h3>
+                            <div class="topic-meta">
+                                <span>${escapeHtml(topic.author)}</span>
+                                <span>•</span>
+                                <span>${timeAgo}</span>
+                                <span class="tag">${escapeHtml(topic.category)}</span>
+                            </div>
+                        </div>
+                        <div class="topic-stats">
+                            <div><strong>${topic.replies || 0}</strong><small>Yanıt</small></div>
+                            <div><strong>${topic.views || 1}</strong><small>Görüntülenme</small></div>
+                        </div>
+                    </article>
+                `;
+            }).join('');
+
+            document.getElementById('result-count').textContent = `${filtered.length} konu`;
+        }
+
+        function updateAuthUI(user) {
+            currentUser = user;
+            document.getElementById('btn-login').style.display = user ? 'none' : 'block';
+            const profile = document.getElementById('profile');
+            profile.style.display = user ? 'flex' : 'none';
+            if (user) {
+                document.getElementById('avatar').src = user.user_metadata.avatar_url || 'https://github.com/identicons/app.png';
+            }
+        }
+
+        document.getElementById('btn-login').addEventListener('click', async () => {
+            const { error } = await window.supabaseClient.auth.signInWithOAuth({ 
+                provider: 'github', 
+                options: { redirectTo: window.location.origin + window.location.pathname } 
+            });
+            if (error) console.error('Giriş hatası:', error.message);
+        });
+
+        document.getElementById('btn-logout').addEventListener('click', async () => {
+            const { error } = await window.supabaseClient.auth.signOut();
+            if (!error) updateAuthUI(null);
+        });
+
+        document.getElementById('new-topic').addEventListener('click', () => {
+            if (!currentUser) {
+                alert('Yeni konu oluşturabilmek için önce GitHub ile giriş yapmalısın!');
+                return;
+            }
+            topicModal.classList.add('open');
+            document.getElementById('topic-title-input').focus();
+        });
+
+        document.getElementById('close-modal').addEventListener('click', () => topicModal.classList.remove('open'));
+        topicModal.addEventListener('click', event => { if (event.target === topicModal) topicModal.classList.remove('open'); });
+        document.addEventListener('keydown', event => { if (event.key === 'Escape') topicModal.classList.remove('open'); });
+
+        // Supabase Veritabanına Yeni Konu Kaydetme
+        topicForm.addEventListener('submit', async event => {
+            event.preventDefault();
+            if (!currentUser) {
+                alert('Oturum süresi dolmuş, lütfen tekrar giriş yapın.');
+                return;
+            }
+
+            const title = document.getElementById('topic-title-input').value.trim();
+            const category = document.getElementById('topic-category-input').value;
+            const content = document.getElementById('topic-content-input').value.trim();
+            const author = currentUser.user_metadata.full_name || currentUser.user_metadata.user_name || currentUser.email;
+            const avatar_url = currentUser.user_metadata.avatar_url;
+
+            const { error } = await window.supabaseClient
+                .from('forum_topics')
+                .insert([{
+                    title: title,
+                    content: content,
+                    category: category,
+                    author: author,
+                    avatar_url: avatar_url,
+                    views: 1,
+                    replies: 0
+                }]);
+
+            if (error) {
+                alert('Konu yayınlanırken hata oluştu: ' + error.message);
+            } else {
+                alert('Konunuz başarıyla yayınlandı!');
+                topicForm.reset();
+                topicModal.classList.remove('open');
+                fetchTopics(); // Listeyi güncelle
+            }
+        });
+
+        searchInput.addEventListener('input', renderTopics);
+        categoryFilter.addEventListener('change', renderTopics);
+        
+        // Sayfa açıldığında oturumu kontrol et ve konuları getir
+        window.supabaseClient.auth.getSession().then(({ data }) => updateAuthUI(data.session?.user || null));
+        window.supabaseClient.auth.onAuthStateChange((_event, session) => updateAuthUI(session?.user || null));
+
+        fetchTopics();
+    </script>
+</body>
+
+</html>
