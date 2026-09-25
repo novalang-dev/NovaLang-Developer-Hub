@@ -1,0 +1,32 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 512 512" width="512" height="512">
+  <defs>
+    <radialGradient id="bg2" cx="50%" cy="50%" r="50%">
+      <stop offset="0%" stop-color="#0b0f19"/>
+      <stop offset="100%" stop-color="#030712"/>
+    </radialGradient>
+  </defs>
+
+  <!-- Dairesel Arka Plan -->
+  <circle cx="256" cy="256" r="256" fill="url(#bg2)"/>
+  
+  <!-- Dış İnce Neon Çerçeve -->
+  <circle cx="256" cy="256" r="236" fill="none" stroke="#38bdf8" stroke-width="3" stroke-dasharray="8 8" opacity="0.4"/>
+
+  <!-- NovaLang Yazısı -->
+  <text x="256" y="235" 
+        font-family="'Plus Jakarta Sans', 'Segoe UI', sans-serif" 
+        font-weight="800" 
+        font-size="62" 
+        fill="#f8fafc" 
+        text-anchor="middle" 
+        letter-spacing="-2">NovaLang</text>
+
+  <!-- DEV / HUB Yazısı -->
+  <text x="256" y="300" 
+        font-family="'Consolas', 'Fira Code', monospace" 
+        font-weight="700" 
+        font-size="34" 
+        fill="#38bdf8" 
+        text-anchor="middle" 
+        letter-spacing="6">&lt;DEV/&gt;</text>
+</svg>

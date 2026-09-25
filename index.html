@@ -1,0 +1,709 @@
+<!DOCTYPE html>
+<html lang="tr">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>NovaLang Developer Hub</title>
+
+    <!-- Supabase JS Client Library CDN -->
+    <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
+</head>
+<body>
+
+    <header class="navbar">
+        <div class="nav-container">
+            <!-- Logo -->
+            <a href="#" class="logo">
+                <div class="logo-icon">
+                    <svg viewBox="0 0 24 24" width="20" height="20" stroke="currentColor" stroke-width="2.5" fill="none">
+                        <path d="M12 2L2 7l10 5 10-5-10-5zM2 17l10 5 10-5M2 12l10 5 10-5"></path>
+                    </svg>
+                </div>
+                <span class="logo-text">NovaLang<span class="logo-badge">DEV</span></span>
+            </a>
+
+            <!-- Navigasyon -->
+            <nav class="nav-menu">
+                <a href="#anasayfa" class="nav-link active">
+                    <span class="link-text">Ana Sayfa</span>
+                </a>
+                <a href="duyurular.html" class="nav-link nav-announcement">
+                    <span class="link-text">Duyurular</span>
+                    <span class="nav-ping"></span>
+                </a>
+                <a href="#araclar" class="nav-link">
+                    <span class="link-text">Araçlar</span>
+                </a>
+                <a href="#oyunlar" class="nav-link">
+                    <span class="link-text">Oyunlar</span>
+                </a>
+                <a href="#hakkimizda" class="nav-link">
+                    <span class="link-text">Hakkımızda</span>
+                </a>
+                <a href="#forum" class="nav-link nav-btn-forum">
+                    <span class="btn-glow"></span>
+                    <span class="link-text">Forum</span>
+                </a>
+
+                <!-- GitHub Auth Butonu & Profil Alanı -->
+                <div id="auth-container" style="margin-left: 10px; display: flex; align-items: center; gap: 10px;">
+                    <button id="btn-login" class="nav-link" style="background: rgba(255,255,255,0.08); border: 1px solid rgba(255,255,255,0.15); cursor: pointer; display: flex; align-items: center; gap: 6px; color: var(--text-primary);">
+                        <svg width="16" height="16" viewBox="0 0 24 24" fill="currentColor">
+                            <path d="M12 0C5.37 0 0 5.37 0 12c0 5.31 3.435 9.795 8.205 11.385.6.105.825-.255.825-.57 0-.285-.015-1.23-.015-2.235-3.015.555-3.795-.735-4.035-1.41-.135-.345-.72-1.41-1.23-1.695-.42-.225-1.02-.78-.015-.795.945-.015 1.62.87 1.845 1.23 1.08 1.815 2.805 1.305 3.495.99.105-.78.42-1.305.765-1.605-2.67-.3-5.46-1.335-5.46-5.925 0-1.305.465-2.385 1.23-3.225-.12-.3-.54-1.53.12-3.18 0 0 1.005-.315 3.3 1.23.96-.27 1.98-.405 3-.405s2.04.135 3 .405c2.295-1.56 3.3-1.23 3.3-1.23.66 1.65.24 2.88.12 3.18.765.84 1.23 1.905 1.23 3.225 0 4.605-2.805 5.625-5.475 5.925.435.375.81 1.095.81 2.22 0 1.605-.015 2.895-.015 3.3 0 .315.225.69.825.57A12.02 12.02 0 0024 12c0-6.63-5.37-12-12-12z"/>
+                        </svg>
+                        Giriş Yap
+                    </button>
+                    
+                    <div id="user-profile" style="display: none; align-items: center; gap: 8px;">
+                        <img id="user-avatar" src="" alt="Avatar" style="width: 32px; height: 32px; border-radius: 50%; border: 1px solid var(--accent-cyan);">
+                        <button id="btn-logout" class="nav-link" style="background: rgba(239, 68, 68, 0.2); border: 1px solid rgba(239, 68, 68, 0.4); color: #f87171; cursor: pointer; padding: 6px 12px;">Çıkış</button>
+                    </div>
+                </div>
+            </nav>
+        </div>
+    </header>
+
+    <style>
+        @import url('https://fonts.googleapis.com/css2?family=Plus+Jakarta+Sans:wght@500;700;800&display=swap');
+
+        :root {
+            --bg-dark: #030712;
+            --accent-cyan: #06b6d4;
+            --accent-purple: #8b5cf6;
+            --text-primary: #f9fafb;
+            --text-secondary: #9ca3af;
+            --border-card: rgba(255, 255, 255, 0.08);
+        }
+
+        body {
+            margin: 0;
+            font-family: 'Plus Jakarta Sans', sans-serif;
+            background-color: var(--bg-dark);
+        }
+
+        /* Glassmorphism Navbar Container */
+        .navbar {
+            position: sticky;
+            top: 16px;
+            z-index: 1000;
+            max-width: 1100px;
+            margin: 0 auto;
+            padding: 0 16px;
+        }
+
+        .nav-container {
+            background: rgba(17, 24, 39, 0.7);
+            backdrop-filter: blur(16px) saturate(180%);
+            -webkit-backdrop-filter: blur(16px) saturate(180%);
+            border: 1px solid rgba(255, 255, 255, 0.08);
+            border-radius: 99px;
+            padding: 8px 24px;
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            box-shadow: 0 20px 40px -15px rgba(0, 0, 0, 0.5);
+        }
+
+        /* Logo */
+        .logo {
+            display: flex;
+            align-items: center;
+            gap: 10px;
+            text-decoration: none;
+        }
+
+        .logo-icon {
+            width: 36px;
+            height: 36px;
+            background: linear-gradient(135deg, var(--accent-cyan), var(--accent-purple));
+            border-radius: 50%;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            color: #fff;
+            box-shadow: 0 0 15px rgba(6, 182, 212, 0.4);
+        }
+
+        .logo-text {
+            color: var(--text-primary);
+            font-size: 1.15rem;
+            font-weight: 800;
+            letter-spacing: -0.5px;
+            display: flex;
+            align-items: center;
+            gap: 6px;
+        }
+
+        .logo-badge {
+            font-size: 0.65rem;
+            font-weight: 700;
+            background: rgba(6, 182, 212, 0.15);
+            color: var(--accent-cyan);
+            padding: 2px 6px;
+            border-radius: 6px;
+            border: 1px solid rgba(6, 182, 212, 0.3);
+        }
+
+        /* Navigation Links */
+        .nav-menu {
+            display: flex;
+            align-items: center;
+            gap: 8px;
+        }
+
+        .nav-link {
+            text-decoration: none;
+            color: var(--text-secondary);
+            font-size: 0.88rem;
+            font-weight: 600;
+            padding: 8px 16px;
+            border-radius: 99px;
+            transition: all 0.25s ease;
+            position: relative;
+        }
+
+        .nav-link:hover {
+            color: var(--text-primary);
+            background: rgba(255, 255, 255, 0.05);
+        }
+
+        .nav-link.active {
+            color: var(--text-primary);
+            background: rgba(255, 255, 255, 0.1);
+        }
+
+        /* Forum Button Special Style */
+        .nav-btn-forum {
+            background: linear-gradient(135deg, var(--accent-cyan), var(--accent-purple));
+            color: #fff !important;
+            padding: 8px 20px;
+            margin-left: 8px;
+            overflow: hidden;
+            box-shadow: 0 4px 15px rgba(139, 92, 246, 0.3);
+        }
+
+        .nav-btn-forum:hover {
+            transform: translateY(-1px);
+            box-shadow: 0 6px 20px rgba(6, 182, 212, 0.5);
+            background: linear-gradient(135deg, var(--accent-cyan), var(--accent-purple));
+        }
+
+        @media (max-width: 768px) {
+            .nav-container {
+                border-radius: 20px;
+                padding: 12px 16px;
+            }
+            .logo-badge { display: none; }
+            .nav-link { padding: 6px 10px; font-size: 0.8rem; }
+        }
+    </style>
+
+    <section class="hero-section">
+        <!-- Arka Plan Neon Parıltıları -->
+        <div class="glow-sphere glow-cyan"></div>
+        <div class="glow-sphere glow-purple"></div>
+
+        <div class="hero-container">
+            <!-- Rozet / Status -->
+            <div class="status-badge">
+                <span class="status-dot"></span>
+                <span>Açık Kaynak Projeler & Web Oyunları</span>
+            </div>
+
+            <!-- Ana Başlık -->
+            <h1 class="hero-title">
+                Geliştir, Keşfet, Oyna:<br>
+                <span class="gradient-text">Geleceğin Web Platformu</span>
+            </h1>
+
+            <!-- Açıklama -->
+            <p class="hero-description">
+                NovaLang Developer Hub; bağımsız geliştiriciler için tasarlanmış açık kaynak araçlar, gerçek zamanlı web oyunları ve deneysel yazılım projelerinin buluşma noktasıdır.
+            </p>
+
+            <!-- Butonlar -->
+            <div class="hero-actions">
+                <a href="#oyunlar" class="btn btn-primary">
+                    <span>Projeleri Keşfet</span>
+                    <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5">
+                        <path d="M5 12h14M12 5l7 7-7 7"/>
+                    </svg>
+                </a>
+                <a href="https://github.com" target="_blank" class="btn btn-secondary">
+                    <svg width="18" height="18" viewBox="0 0 24 24" fill="currentColor">
+                        <path d="M12 0C5.37 0 0 5.37 0 12c0 5.31 3.435 9.795 8.205 11.385.6.105.825-.255.825-.57 0-.285-.015-1.23-.015-2.235-3.015.555-3.795-.735-4.035-1.41-.135-.345-.72-1.41-1.23-1.695-.42-.225-1.02-.78-.015-.795.945-.015 1.62.87 1.845 1.23 1.08 1.815 2.805 1.305 3.495.99.105-.78.42-1.305.765-1.605-2.67-.3-5.46-1.335-5.46-5.925 0-1.305.465-2.385 1.23-3.225-.12-.3-.54-1.53.12-3.18 0 0 1.005-.315 3.3 1.23.96-.27 1.98-.405 3-.405s2.04.135 3 .405c2.295-1.56 3.3-1.23 3.3-1.23.66 1.65.24 2.88.12 3.18.765.84 1.23 1.905 1.23 3.225 0 4.605-2.805 5.625-5.475 5.925.435.375.81 1.095.81 2.22 0 1.605-.015 2.895-.015 3.3 0 .315.225.69.825.57A12.02 12.02 0 0024 12c0-6.63-5.37-12-12-12z"/>
+                    </svg>
+                    <span>GitHub'da İncele</span>
+                </a>
+            </div>
+
+            <!-- İstatistik Kartları (Glassmorphism Grid) -->
+            <div class="stats-grid">
+                <div class="stat-card">
+                    <span class="stat-number">4+</span>
+                    <span class="stat-label">Canlı Proje</span>
+                </div>
+                <div class="stat-card">
+                    <span class="stat-number">%100</span>
+                    <span class="stat-label">Açık Kaynak</span>
+                </div>
+                <div class="stat-card">
+                    <span class="stat-number">0 TL</span>
+                    <span class="stat-label">Maliyet & Ücretsiz</span>
+                </div>
+            </div>
+        </div>
+    </section>
+
+    <style>
+        /* Hero Section Yapısı */
+        .hero-section {
+            position: relative;
+            padding: 100px 20px 60px;
+            overflow: hidden;
+            background-color: var(--bg-dark);
+            font-family: 'Plus Jakarta Sans', sans-serif;
+        }
+
+        .hero-container {
+            max-width: 900px;
+            margin: 0 auto;
+            text-align: center;
+            position: relative;
+            z-index: 2;
+        }
+
+        /* Neon Parıltı Küreleri */
+        .glow-sphere {
+            position: absolute;
+            width: 350px;
+            height: 350px;
+            border-radius: 50%;
+            filter: blur(120px);
+            opacity: 0.35;
+            z-index: 1;
+            pointer-events: none;
+        }
+        .glow-cyan {
+            top: -50px;
+            left: 15%;
+            background: var(--accent-cyan);
+        }
+        .glow-purple {
+            top: 50px;
+            right: 15%;
+            background: var(--accent-purple);
+        }
+
+        /* Rozet (Status Badge) */
+        .status-badge {
+            display: inline-flex;
+            align-items: center;
+            gap: 8px;
+            background: rgba(255, 255, 255, 0.03);
+            border: 1px solid rgba(255, 255, 255, 0.1);
+            padding: 6px 16px;
+            border-radius: 99px;
+            font-size: 0.85rem;
+            color: var(--text-secondary);
+            backdrop-filter: blur(10px);
+            margin-bottom: 24px;
+        }
+
+        .status-dot {
+            width: 8px;
+            height: 8px;
+            background-color: #10b981;
+            border-radius: 50%;
+            box-shadow: 0 0 10px #10b981;
+        }
+
+        /* Tipografi */
+        .hero-title {
+            font-size: 3.5rem;
+            font-weight: 800;
+            color: var(--text-primary);
+            line-height: 1.15;
+            letter-spacing: -1.5px;
+            margin: 0 0 20px;
+        }
+
+        .gradient-text {
+            background: linear-gradient(135deg, var(--accent-cyan), var(--accent-purple));
+            -webkit-background-clip: text;
+            -webkit-text-fill-color: transparent;
+        }
+
+        .hero-description {
+            font-size: 1.15rem;
+            color: var(--text-secondary);
+            max-width: 680px;
+            margin: 0 auto 36px;
+            line-height: 1.6;
+        }
+
+        /* Butonlar */
+        .hero-actions {
+            display: flex;
+            justify-content: center;
+            gap: 16px;
+            margin-bottom: 60px;
+        }
+
+        .btn {
+            display: inline-flex;
+            align-items: center;
+            gap: 10px;
+            padding: 14px 28px;
+            border-radius: 99px;
+            font-size: 0.95rem;
+            font-weight: 700;
+            text-decoration: none;
+            transition: all 0.3s cubic-bezier(0.4, 0, 0.2, 1);
+            cursor: pointer;
+        }
+
+        .btn-primary {
+            background: linear-gradient(135deg, var(--accent-cyan), var(--accent-purple));
+            color: #ffffff;
+            box-shadow: 0 10px 25px -5px rgba(6, 182, 212, 0.4);
+        }
+
+        .btn-primary:hover {
+            transform: translateY(-2px);
+            box-shadow: 0 15px 30px -5px rgba(139, 92, 246, 0.6);
+        }
+
+        .btn-secondary {
+            background: rgba(255, 255, 255, 0.05);
+            color: var(--text-primary);
+            border: 1px solid rgba(255, 255, 255, 0.1);
+            backdrop-filter: blur(10px);
+        }
+
+        .btn-secondary:hover {
+            background: rgba(255, 255, 255, 0.1);
+            border-color: rgba(255, 255, 255, 0.2);
+            transform: translateY(-2px);
+        }
+
+        /* İstatistik Kartları Grid */
+        .stats-grid {
+            display: grid;
+            grid-template-columns: repeat(3, 1fr);
+            gap: 20px;
+            max-width: 750px;
+            margin: 0 auto;
+        }
+
+        .stat-card {
+            background: rgba(17, 24, 39, 0.5);
+            border: 1px solid rgba(255, 255, 255, 0.08);
+            border-radius: 20px;
+            padding: 20px;
+            backdrop-filter: blur(12px);
+            display: flex;
+            flex-direction: column;
+            gap: 4px;
+            transition: border-color 0.3s ease;
+        }
+
+        .stat-card:hover {
+            border-color: rgba(6, 182, 212, 0.4);
+        }
+
+        .stat-number {
+            font-size: 1.8rem;
+            font-weight: 800;
+            color: var(--text-primary);
+        }
+
+        .stat-label {
+            font-size: 0.85rem;
+            color: var(--text-secondary);
+            font-weight: 500;
+        }
+
+        /* Mobil Uyumluluk */
+        @media (max-width: 768px) {
+            .hero-title { font-size: 2.4rem; }
+            .hero-description { font-size: 1rem; }
+            .hero-actions { flex-direction: column; gap: 12px; }
+            .btn { justify-content: center; width: 100%; box-sizing: border-box; }
+            .stats-grid { grid-template-columns: 1fr; gap: 12px; }
+        }
+    </style>
+
+    <footer class="footer">
+        <!-- Arka Plan Neon Parıltısı -->
+        <div class="footer-glow"></div>
+
+        <div class="footer-container">
+            <div class="footer-top">
+                <!-- Sol Taraf: Marka & Açıklama -->
+                <div class="footer-brand">
+                    <a href="#" class="footer-logo">
+                        <div class="logo-icon">
+                            <svg viewBox="0 0 24 24" width="18" height="18" stroke="currentColor" stroke-width="2.5" fill="none">
+                                <path d="M12 2L2 7l10 5 10-5-10-5zM2 17l10 5 10-5M2 12l10 5 10-5"></path>
+                            </svg>
+                        </div>
+                        <span class="logo-text">NovaLang<span class="logo-badge">DEV</span></span>
+                    </a>
+                    <p class="brand-desc">
+                        Açık kaynak yazılım araçları, bağımsız web oyunları ve deneysel projeler geliştiren bağımsız geliştirici hub'ı.
+                    </p>
+                </div>
+
+                <!-- Sağ Taraf: Bağlantı Sütunları -->
+                <div class="footer-links-grid">
+                    <div class="link-group">
+                        <h4>Proje & Araçlar</h4>
+                        <ul>
+                            <li><a href="#cyber-tycoon">Cyber Tycoon</a></li>
+                            <li><a href="#novaart">NovaArt</a></li>
+                            <li><a href="#shieldx">ShieldX</a></li>
+                            <li><a href="#nova-messages">Nova Messages</a></li>
+                        </ul>
+                    </div>
+
+                    <div class="link-group">
+                        <h4>Topluluk & Linkler</h4>
+                        <ul>
+                            <li><a href="#forum">Forum & Tartışma</a></li>
+                            <li><a href="https://github.com" target="_blank">GitHub Deposu</a></li>
+                            <li><a href="#hakkimizda">Hakkımızda</a></li>
+                            <li><a href="#lisans">Açık Kaynak Lisansı</a></li>
+                        </ul>
+                    </div>
+                </div>
+            </div>
+
+            <!-- Alt Kısım: Telif & Sosyal Medya -->
+            <div class="footer-bottom">
+                <p class="copyright">
+                    © 2026 <strong>NovaLang Developer Hub</strong>. Tüm projeler açık kaynaklıdır.
+                </p>
+
+                <div class="social-links">
+                    <a href="https://github.com" target="_blank" aria-label="GitHub" class="social-btn">
+                        <svg width="18" height="18" viewBox="0 0 24 24" fill="currentColor">
+                            <path d="M12 0C5.37 0 0 5.37 0 12c0 5.31 3.435 9.795 8.205 11.385.6.105.825-.255.825-.57 0-.285-.015-1.23-.015-2.235-3.015.555-3.795-.735-4.035-1.41-.135-.345-.72-1.41-1.23-1.695-.42-.225-1.02-.78-.015-.795.945-.015 1.62.87 1.845 1.23 1.08 1.815 2.805 1.305 3.495.99.105-.78.42-1.305.765-1.605-2.67-.3-5.46-1.335-5.46-5.925 0-1.305.465-2.385 1.23-3.225-.12-.3-.54-1.53.12-3.18 0 0 1.005-.315 3.3 1.23.96-.27 1.98-.405 3-.405s2.04.135 3 .405c2.295-1.56 3.3-1.23 3.3-1.23.66 1.65.24 2.88.12 3.18.765.84 1.23 1.905 1.23 3.225 0 4.605-2.805 5.625-5.475 5.925.435.375.81 1.095.81 2.22 0 1.605-.015 2.895-.015 3.3 0 .315.225.69.825.57A12.02 12.02 0 0024 12c0-6.63-5.37-12-12-12z"/>
+                        </svg>
+                    </a>
+                </div>
+            </div>
+        </div>
+    </footer>
+
+    <style>
+        .footer {
+            position: relative;
+            background-color: rgba(3, 7, 18, 0.95);
+            border-top: 1px solid var(--border-card);
+            padding: 80px 20px 30px;
+            overflow: hidden;
+        }
+
+        /* Neon Arka Plan Işığı */
+        .footer-glow {
+            position: absolute;
+            bottom: -100px;
+            left: 50%;
+            transform: translateX(-50%);
+            width: 600px;
+            height: 200px;
+            background: radial-gradient(circle, rgba(6, 182, 212, 0.15) 0%, rgba(139, 92, 246, 0.08) 50%, transparent 80%);
+            filter: blur(80px);
+            pointer-events: none;
+        }
+
+        .footer-container {
+            max-width: 1100px;
+            margin: 0 auto;
+            position: relative;
+            z-index: 2;
+        }
+
+        .footer-top {
+            display: flex;
+            justify-content: space-between;
+            gap: 40px;
+            margin-bottom: 60px;
+        }
+
+        /* Sol Marka Alanı */
+        .footer-brand {
+            max-width: 360px;
+        }
+
+        .footer-logo {
+            display: flex;
+            align-items: center;
+            gap: 10px;
+            text-decoration: none;
+            margin-bottom: 16px;
+        }
+
+        .brand-desc {
+            color: var(--text-secondary);
+            font-size: 0.9rem;
+            line-height: 1.6;
+            margin: 0;
+        }
+
+        /* Sağ Link Grubu */
+        .footer-links-grid {
+            display: flex;
+            gap: 60px;
+        }
+
+        .link-group h4 {
+            color: var(--text-primary);
+            font-size: 0.95rem;
+            font-weight: 700;
+            margin: 0 0 20px;
+        }
+
+        .link-group ul {
+            list-style: none;
+            padding: 0;
+            margin: 0;
+            display: flex;
+            flex-direction: column;
+            gap: 12px;
+        }
+
+        .link-group a {
+            color: var(--text-secondary);
+            text-decoration: none;
+            font-size: 0.88rem;
+            transition: color 0.2s ease;
+        }
+
+        .link-group a:hover {
+            color: var(--accent-cyan);
+        }
+
+        /* Alt Çizgi ve Telif */
+        .footer-bottom {
+            border-top: 1px solid var(--border-card);
+            padding-top: 24px;
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+        }
+
+        .copyright {
+            color: var(--text-secondary);
+            font-size: 0.85rem;
+            margin: 0;
+        }
+
+        .copyright strong {
+            color: var(--text-primary);
+        }
+
+        .social-btn {
+            width: 36px;
+            height: 36px;
+            border-radius: 50%;
+            background: rgba(255, 255, 255, 0.04);
+            border: 1px solid var(--border-card);
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            color: var(--text-secondary);
+            text-decoration: none;
+            transition: all 0.25s ease;
+        }
+
+        .social-btn:hover {
+            background: rgba(255, 255, 255, 0.1);
+            color: var(--text-primary);
+            border-color: rgba(6, 182, 212, 0.4);
+            transform: translateY(-2px);
+        }
+
+        @media (max-width: 768px) {
+            .footer-top {
+                flex-direction: column;
+                gap: 40px;
+            }
+            .footer-links-grid {
+                flex-direction: column;
+                gap: 30px;
+            }
+            .footer-bottom {
+                flex-direction: column;
+                gap: 16px;
+                text-align: center;
+            }
+        }
+    </style>
+
+    <!-- Supabase Entegrasyon Mantığı -->
+    <script>
+        const SUPABASE_URL = 'https://kgzdnvfcxgtuuulzekxh.supabase.co'; // Kendi Supabase URL değerini yapıştır
+        const SUPABASE_ANON_KEY = 'eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6ImtnemRudmZjeGd0dXV1bHpla3hoIiwicm9sZSI6ImFub24iLCJpYXQiOjE3OTAzMTcyMjksImV4cCI6MjEwNTg5MzIyOX0.9KsAnorvJ5glpxPo8vr4foCIPykjCQftZb7fxfA0kww'; // Kendi anon key değerini yapıştır
+
+        // Supabase istemcisini başlat
+        const supabase = window.supabase.createClient(SUPABASE_URL, SUPABASE_ANON_KEY);
+
+        // DOM Elemanları
+        const btnLogin = document.getElementById('btn-login');
+        const btnLogout = document.getElementById('btn-logout');
+        const userProfile = document.getElementById('user-profile');
+        const userAvatar = document.getElementById('user-avatar');
+
+        // GitHub ile Giriş Yapme Fonksiyonu
+        async function loginWithGitHub() {
+            const { data, error } = await supabase.auth.signInWithOAuth({
+                provider: 'github',
+                options: {
+                    redirectTo: 'https://novalang-dev.github.io/'
+                }
+            });
+            if (error) console.error('Giriş hatası:', error.message);
+        }
+
+        // Çıkış Yapma Fonksiyonu
+        async function logout() {
+            const { error } = await supabase.auth.signOut();
+            if (error) console.error('Çıkış hatası:', error.message);
+            else updateUI(null);
+        }
+
+        // Kullanıcı Durumuna Göre Arayüzü Güncelleme
+        function updateUI(user) {
+            if (user) {
+                btnLogin.style.display = 'none';
+                userProfile.style.display = 'flex';
+                userAvatar.src = user.user_metadata.avatar_url || 'https://github.com/identicons/app.png';
+                userAvatar.title = user.user_metadata.full_name || user.email;
+            } else {
+                btnLogin.style.display = 'flex';
+                userProfile.style.display = 'none';
+            }
+        }
+
+        // Sayfa Yüklendiğinde Oturumu Kontrol Et
+        async function checkUserSession() {
+            const { data: { session } } = await supabase.auth.getSession();
+            updateUI(session?.user || null);
+
+            // Dinamik Oturum Değişimlerini Dinle
+            supabase.auth.onAuthStateChange((_event, session) => {
+                updateUI(session?.user || null);
+            });
+        }
+
+        // Event Listener'ları Bağla
+        btnLogin.addEventListener('click', loginWithGitHub);
+        btnLogout.addEventListener('click', logout);
+
+        // Başlat
+        checkUserSession();
+    </script>
+</body>
+</html>

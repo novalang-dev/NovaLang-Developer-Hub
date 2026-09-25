@@ -1,0 +1,284 @@
+<!DOCTYPE html>
+<html lang="tr">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Duyurular - NovaLang Developer Hub</title>
+    <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
+</head>
+<body>
+
+    <header class="navbar">
+        <div class="nav-container">
+            <a href="index.html" class="logo">
+                <div class="logo-icon">
+                    <svg viewBox="0 0 24 24" width="20" height="20" stroke="currentColor" stroke-width="2.5" fill="none">
+                        <path d="M12 2L2 7l10 5 10-5-10-5zM2 17l10 5 10-5M2 12l10 5 10-5"></path>
+                    </svg>
+                </div>
+                <span class="logo-text">NovaLang<span class="logo-badge">DEV</span></span>
+            </a>
+
+            <nav class="nav-menu">
+                <a href="index.html" class="nav-link"><span class="link-text">Ana Sayfa</span></a>
+                <a href="duyurular.html" class="nav-link nav-announcement active">
+                    <span class="link-text">Duyurular</span>
+                    <span class="nav-ping"></span>
+                </a>
+                <a href="index.html#araclar" class="nav-link"><span class="link-text">Araçlar</span></a>
+                <a href="index.html#oyunlar" class="nav-link"><span class="link-text">Oyunlar</span></a>
+                <a href="index.html#hakkimizda" class="nav-link"><span class="link-text">Hakkımızda</span></a>
+                <a href="index.html#forum" class="nav-link nav-btn-forum"><span class="link-text">Forum</span></a>
+
+                <div id="auth-container" style="margin-left: 10px; display: flex; align-items: center; gap: 10px;">
+                    <button id="btn-login" class="nav-link" style="background: rgba(255,255,255,0.08); border: 1px solid rgba(255,255,255,0.15); cursor: pointer; display: flex; align-items: center; gap: 6px; color: var(--text-primary);">
+                        <svg width="16" height="16" viewBox="0 0 24 24" fill="currentColor">
+                            <path d="M12 0C5.37 0 0 5.37 0 12c0 5.31 3.435 9.795 8.205 11.385.6.105.825-.255.825-.57 0-.285-.015-1.23-.015-2.235-3.015.555-3.795-.735-4.035-1.41-.135-.345-.72-1.41-1.23-1.695-.42-.225-1.02-.78-.015-.795.945-.015 1.62.87 1.845 1.23 1.08 1.815 2.805 1.305 3.495.99.105-.78.42-1.305.765-1.605-2.67-.3-5.46-1.335-5.46-5.925 0-1.305.465-2.385 1.23-3.225-.12-.3-.54-1.53.12-3.18 0 0 1.005-.315 3.3 1.23.96-.27 1.98-.405 3-.405s2.04.135 3 .405c2.295-1.56 3.3-1.23 3.3-1.23.66 1.65.24 2.88.12 3.18.765.84 1.23 1.905 1.23 3.225 0 4.605-2.805 5.625-5.475 5.925.435.375.81 1.095.81 2.22 0 1.605-.015 2.895-.015 3.3 0 .315.225.69.825.57A12.02 12.02 0 0024 12c0-6.63-5.37-12-12-12z"/>
+                        </svg>
+                        Giriş Yap
+                    </button>
+                    
+                    <div id="user-profile" style="display: none; align-items: center; gap: 8px;">
+                        <img id="user-avatar" src="" alt="Avatar" style="width: 32px; height: 32px; border-radius: 50%; border: 1px solid var(--accent-cyan);">
+                        <button id="btn-logout" class="nav-link" style="background: rgba(239, 68, 68, 0.2); border: 1px solid rgba(239, 68, 68, 0.4); color: #f87171; cursor: pointer; padding: 6px 12px;">Çıkış</button>
+                    </div>
+                </div>
+            </nav>
+        </div>
+    </header>
+
+    <style>
+        @import url('https://fonts.googleapis.com/css2?family=Plus+Jakarta+Sans:wght@500;700;800&display=swap');
+        :root {
+            --bg-dark: #030712;
+            --accent-cyan: #06b6d4;
+            --accent-purple: #8b5cf6;
+            --text-primary: #f9fafb;
+            --text-secondary: #9ca3af;
+            --border-card: rgba(255, 255, 255, 0.08);
+        }
+        body { margin: 0; font-family: 'Plus Jakarta Sans', sans-serif; background-color: var(--bg-dark); color: var(--text-primary); }
+        .navbar { position: sticky; top: 16px; z-index: 1000; max-width: 1100px; margin: 0 auto; padding: 0 16px; }
+        .nav-container { background: rgba(17, 24, 39, 0.7); backdrop-filter: blur(16px); border: 1px solid rgba(255, 255, 255, 0.08); border-radius: 99px; padding: 8px 24px; display: flex; justify-content: space-between; align-items: center; }
+        .logo { display: flex; align-items: center; gap: 10px; text-decoration: none; }
+        .logo-icon { width: 36px; height: 36px; background: linear-gradient(135deg, var(--accent-cyan), var(--accent-purple)); border-radius: 50%; display: flex; align-items: center; justify-content: center; color: #fff; }
+        .logo-text { color: var(--text-primary); font-size: 1.15rem; font-weight: 800; display: flex; align-items: center; gap: 6px; }
+        .logo-badge { font-size: 0.65rem; font-weight: 700; background: rgba(6, 182, 212, 0.15); color: var(--accent-cyan); padding: 2px 6px; border-radius: 6px; border: 1px solid rgba(6, 182, 212, 0.3); }
+        .nav-menu { display: flex; align-items: center; gap: 8px; }
+        .nav-link { text-decoration: none; color: var(--text-secondary); font-size: 0.88rem; font-weight: 600; padding: 8px 16px; border-radius: 99px; transition: all 0.25s ease; }
+        .nav-link:hover, .nav-link.active { color: var(--text-primary); background: rgba(255, 255, 255, 0.1); }
+        .nav-announcement { position: relative; }
+        .nav-ping { position: absolute; top: 6px; right: 10px; width: 6px; height: 6px; background-color: var(--accent-cyan); border-radius: 50%; }
+        .nav-btn-forum { background: linear-gradient(135deg, var(--accent-cyan), var(--accent-purple)); color: #fff !important; }
+        
+        /* DEV Rozeti Stili (Forumda da Kullanılacak) */
+        .dev-badge {
+            background: linear-gradient(135deg, var(--accent-cyan), var(--accent-purple));
+            color: #fff;
+            font-size: 0.7rem;
+            font-weight: 800;
+            padding: 2px 8px;
+            border-radius: 6px;
+            box-shadow: 0 0 10px rgba(6, 182, 212, 0.5);
+            display: inline-flex;
+            align-items: center;
+            gap: 4px;
+        }
+    </style>
+
+    <main class="announcements-section">
+        <div class="glow-sphere glow-cyan"></div>
+        <div class="glow-sphere glow-purple"></div>
+
+        <div class="container">
+            <div class="section-header">
+                <span class="badge">Güncellemeler & Yenilikler</span>
+                <h1>Son Duyurular</h1>
+                <p>NovaLang ekosistemindeki en son gelişmeleri ve duyuruları canlı olarak takip edin.</p>
+            </div>
+
+            <!-- Sadece Admin Giriş Yaptığında Görünecek Duyuru Ekleme Paneli -->
+            <div id="admin-panel" style="display: none; margin-bottom: 40px; background: rgba(17, 24, 39, 0.8); border: 1px solid rgba(6, 182, 212, 0.4); border-radius: 20px; padding: 24px; backdrop-filter: blur(12px);">
+                <h3 style="margin-top: 0; color: var(--accent-cyan); font-size: 1.2rem; display: flex; align-items: center; gap: 8px;">
+                    ✨ Yeni Duyuru Yayınla <span class="dev-badge">NovaLang DEV</span>
+                </h3>
+                <form id="add-announcement-form" style="display: flex; flex-direction: column; gap: 14px;">
+                    <input type="text" id="ann-title" placeholder="Duyuru Başlığı" required style="background: rgba(255, 255, 255, 0.05); border: 1px solid var(--border-card); border-radius: 10px; padding: 12px; color: #fff; font-family: inherit;">
+                    
+                    <textarea id="ann-content" placeholder="Duyuru İçeriği..." rows="4" required style="background: rgba(255, 255, 255, 0.05); border: 1px solid var(--border-card); border-radius: 10px; padding: 12px; color: #fff; font-family: inherit; resize: vertical;"></textarea>
+
+                    <div style="display: flex; gap: 12px;">
+                        <select id="ann-tag-type" style="background: #111827; border: 1px solid var(--border-card); border-radius: 10px; padding: 10px; color: #fff; flex: 1;">
+                            <option value="event">Duyuru (Mor)</option>
+                            <option value="update">Güncelleme (Mavi)</option>
+                            <option value="release">Sürüm Notu (Yeşil)</option>
+                        </select>
+                        
+                        <input type="text" id="ann-tag" placeholder="Etiket (Örn: Güncelleme)" required style="background: rgba(255, 255, 255, 0.05); border: 1px solid var(--border-card); border-radius: 10px; padding: 10px; color: #fff; flex: 1;">
+                    </div>
+
+                    <button type="submit" style="background: linear-gradient(135deg, var(--accent-cyan), var(--accent-purple)); border: none; border-radius: 10px; padding: 12px; color: #fff; font-weight: 700; cursor: pointer; transition: opacity 0.2s;">
+                        Duyuruyu Paylaş
+                    </button>
+                </form>
+            </div>
+
+            <div class="announcements-grid" id="announcements-grid"></div>
+        </div>
+    </main>
+
+    <style>
+        .announcements-section { position: relative; padding: 80px 20px 120px; overflow: hidden; }
+        .container { max-width: 850px; margin: 0 auto; position: relative; z-index: 2; }
+        .glow-sphere { position: absolute; width: 300px; height: 300px; border-radius: 50%; filter: blur(130px); opacity: 0.25; z-index: 1; pointer-events: none; }
+        .glow-cyan { top: 10%; left: 5%; background: var(--accent-cyan); }
+        .glow-purple { bottom: 10%; right: 5%; background: var(--accent-purple); }
+        .section-header { text-align: center; margin-bottom: 50px; }
+        .badge { display: inline-block; background: rgba(6, 182, 212, 0.1); color: var(--accent-cyan); border: 1px solid rgba(6, 182, 212, 0.25); padding: 6px 16px; border-radius: 99px; font-size: 0.8rem; font-weight: 700; text-transform: uppercase; margin-bottom: 16px; }
+        .section-header h1 { font-size: 2.8rem; font-weight: 800; margin: 0 0 16px; }
+        .section-header p { color: var(--text-secondary); font-size: 1.1rem; max-width: 600px; margin: 0 auto; }
+        .announcements-grid { display: flex; flex-direction: column; gap: 24px; }
+        .announcement-card { background: rgba(17, 24, 39, 0.6); border: 1px solid var(--border-card); border-radius: 24px; padding: 30px; backdrop-filter: blur(12px); }
+        .card-meta { display: flex; justify-content: space-between; align-items: center; margin-bottom: 16px; }
+        .tag { font-size: 0.75rem; font-weight: 700; padding: 4px 12px; border-radius: 8px; }
+        .tag.release { background: rgba(16, 185, 129, 0.15); color: #34d399; border: 1px solid rgba(16, 185, 129, 0.3); }
+        .tag.update { background: rgba(6, 182, 212, 0.15); color: #22d3ee; border: 1px solid rgba(6, 182, 212, 0.3); }
+        .tag.event { background: rgba(139, 92, 246, 0.15); color: #a78bfa; border: 1px solid rgba(139, 92, 246, 0.3); }
+        .date { font-size: 0.85rem; color: var(--text-secondary); }
+        .announcement-card h2 { font-size: 1.4rem; font-weight: 700; margin: 0 0 12px; }
+        .announcement-card p { color: var(--text-secondary); font-size: 0.95rem; line-height: 1.6; margin: 0 0 20px; }
+        .card-footer { border-top: 1px solid rgba(255, 255, 255, 0.05); padding-top: 16px; display: flex; justify-content: flex-end; }
+        .author { font-size: 0.8rem; color: var(--text-secondary); font-weight: 600; display: flex; align-items: center; gap: 6px; }
+    </style>
+
+    <script>
+        const SUPABASE_URL = 'https://kgzdnvfcxgtuuulzekxh.supabase.co'; // Sadece ana domain
+const SUPABASE_ANON_KEY = 'eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6ImtnemRudmZjeGd0dXV1bHpla3hoIiwicm9sZSI6ImFub24iLCJpYXQiOjE3OTAzMTcyMjksImV4cCI6MjEwNTg5MzIyOX0.9KsAnorvJ5glpxPo8vr4foCIPykjCQftZb7fxfA0kww';
+        
+        // SENIN GITHUB KULLANICI ADIN (Rozet ve Admin Yetkisi İçin)
+        const ADMIN_GITHUB_USERNAME = 'novalang-dev'; 
+
+        const supabase = window.supabase.createClient(SUPABASE_URL, SUPABASE_ANON_KEY);
+
+        const btnLogin = document.getElementById('btn-login');
+        const btnLogout = document.getElementById('btn-logout');
+        const userProfile = document.getElementById('user-profile');
+        const userAvatar = document.getElementById('user-avatar');
+        const adminPanel = document.getElementById('admin-panel');
+
+        async function loginWithGitHub() {
+            await supabase.auth.signInWithOAuth({
+                provider: 'github',
+                options: { redirectTo: 'https://novalang-dev.github.io/duyurular.html' }
+            });
+        }
+
+        async function logout() {
+            await supabase.auth.signOut();
+            updateUI(null);
+        }
+
+        function updateUI(user) {
+            if (user) {
+                btnLogin.style.display = 'none';
+                userProfile.style.display = 'flex';
+                userAvatar.src = user.user_metadata.avatar_url || 'https://github.com/identicons/app.png';
+
+                // Eğer Giriş Yapan Kişi Sensin (Admin Paneli Göster)
+                const username = user.user_metadata.user_name || user.user_metadata.preferred_username;
+                if (username === ADMIN_GITHUB_USERNAME) {
+                    adminPanel.style.display = 'block';
+                } else {
+                    adminPanel.style.display = 'none';
+                }
+            } else {
+                btnLogin.style.display = 'flex';
+                userProfile.style.display = 'none';
+                adminPanel.style.display = 'none';
+            }
+        }
+
+        async function checkUserSession() {
+            const { data: { session } } = await supabase.auth.getSession();
+            updateUI(session?.user || null);
+
+            supabase.auth.onAuthStateChange((_event, session) => {
+                updateUI(session?.user || null);
+            });
+        }
+
+        // Duyuru Ekleme Formu Dinleyicisi
+        document.getElementById('add-announcement-form').addEventListener('submit', async (e) => {
+            e.preventDefault();
+            
+            const title = document.getElementById('ann-title').value;
+            const content = document.getElementById('ann-content').value;
+            const tag = document.getElementById('ann-tag').value;
+            const tag_type = document.getElementById('ann-tag-type').value;
+
+            const { error } = await supabase
+                .from('duyurular')
+                .insert([{
+                    baslik: title,
+                    icerik: content,
+                    etiket: tag,
+                    tag_type: tag_type,
+                    yazar: 'NovaLang Team'
+                }]);
+
+            if (error) {
+                alert('Duyuru eklenirken hata oluştu: ' + error.message);
+            } else {
+                alert('Duyuru başarıyla yayınlandı!');
+                document.getElementById('add-announcement-form').reset();
+                fetchDuyurular(); // Listeyi yenile
+            }
+        });
+
+        // Duyuruları Listeleme
+        async function fetchDuyurular() {
+            const grid = document.getElementById('announcements-grid');
+            grid.innerHTML = '<p style="text-align:center; color:var(--text-secondary);">Duyurular yükleniyor...</p>';
+
+            const { data: duyurular, error } = await supabase
+                .from('duyurular')
+                .select('*')
+                .order('created_at', { ascending: false });
+
+            if (error || !duyurular || duyurular.length === 0) {
+                grid.innerHTML = '<p style="text-align:center; color:var(--text-secondary);">Henüz yayınlanmış bir duyuru bulunmuyor.</p>';
+                return;
+            }
+
+            grid.innerHTML = duyurular.map(item => {
+                const dateFormatted = new Date(item.created_at || Date.now()).toLocaleDateString('tr-TR', {
+                    day: 'numeric', month: 'long', year: 'numeric'
+                });
+
+                return `
+                    <article class="announcement-card">
+                        <div class="card-meta">
+                            <span class="tag ${item.tag_type || 'event'}">${item.etiket || 'Duyuru'}</span>
+                            <span class="date">${dateFormatted}</span>
+                        </div>
+                        <h2>${item.baslik || item.title}</h2>
+                        <p>${item.icerik || item.content}</p>
+                        <div class="card-footer">
+                            <span class="author">
+                                By ${item.yazar || 'NovaLang Team'} 
+                                <span class="dev-badge">NovaLang DEV</span>
+                            </span>
+                        </div>
+                    </article>
+                `;
+            }).join('');
+        }
+
+        btnLogin.addEventListener('click', loginWithGitHub);
+        btnLogout.addEventListener('click', logout);
+
+        checkUserSession();
+        fetchDuyurular();
+    </script>
+</body>
+</html>
