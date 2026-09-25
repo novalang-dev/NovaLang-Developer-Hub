@@ -7,7 +7,7 @@
 
 **Açık kaynak yazılım araçları, bağımsız web oyunları ve deneysel projeler platformu.**
 
-[🌐 Canlı Site](https://nova-lang.js.org) • [💬 Forum](https://nova-lang-forum.js.org/) • [📦 Projeler]()
+[🌐 Canlı Site](https://novalang-dev.github.io) • [💬 Forum](https://novalang-dev.github.io/forum.html) • [🔧 Araçlar](https://novalang-dev.github.io/araclar.html) • [🎮 Oyunlar](https://novalang-dev.github.io/oyunlar.html)
 
 ---
 
@@ -35,8 +35,8 @@
 <div align="left">
 
 - **Frontend:** HTML5, CSS3, JavaScript (ES6+), Canvas API
-- **Backend & Realtime:** Node.js, Python (Flask), WebSockets, Firebase Realtime Database
-- **Dağıtım & Hosting:** Render, Vercel, GitHub Pages
+- **Backend & Realtime:** Node.js, Python (Flask), WebSockets, Supabase Inc.
+- **Dağıtım & Hosting:**GitHub Pages
 
 </div>
 
